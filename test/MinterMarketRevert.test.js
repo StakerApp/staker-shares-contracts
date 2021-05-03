@@ -1,48 +1,52 @@
-const HEX = artifacts.require("HEX");
-const ShareMinter = artifacts.require("ShareMinter");
-const ShareMarket = artifacts.require("ShareMarket");
 
-const evm = require('./helpers/EVMExtensions');
+const init = require('../scripts/helpers/initEnvironment');
+const evm = require('./helpers/evmExtensions');
+const env = require('./helpers/envExtensions');
 
-contract('MinterMarket - Invalid Scenarios', (accounts) => {
-    const supplierAccount = accounts[0];
-    const buyerAccount = accounts[1];
+const BigNumber = ethers.BigNumber;
 
+describe('MinterMarketRevert - Invalid Scenarios', () => {
+    let hex, minter, market;
+    let supplier, buyer, claimer;
+
+    const fee = 10;
     const stakeId = 1001;
-    const heartsStaked = 50000;
-    const shares = 29937;
-    const marketShares = 29638;
-
-    let hex;
-    let minter;
-    let market;
-
-    let setBalance = async (address, value) => await hex.setBalance(address, value);
+    const heartsStaked = BigNumber.from("5000000000000000");
+    const shares = BigNumber.from("2907373303321738");
+    const marketShares = BigNumber.from("2907373303321738");
 
     before(async () => {
-        hex = await HEX.deployed();
-        await hex.dailyDataUpdate(0);
-        minter = await ShareMinter.deployed(hex.address, accounts[0]);
-        market = await ShareMarket.deployed(hex.address, minter.address);
+        [hex, minter, market] = await init.deployContracts();
+        [supplier, buyer, claimer] = await init.getAccounts();
 
-        await setBalance(supplierAccount, 100000);
-        await setBalance(buyerAccount, 100000);
-
-        await hex.approve(minter.address, 100000000000000);
-        await hex.approve(market.address, 100000000000000, { from: buyerAccount });
+        env.init(hex, minter, market);
+        await env.seedEnvironment(supplier, buyer, claimer);
 
         //mint shares in setup
-        await minter.mintShares(market.address, supplierAccount, heartsStaked, 1);
+        await minter.mintShares(fee, market.address, supplier.address, heartsStaked, 1);
+    });
+
+    it('should revert premium too high', async () => {
+        const FEE_MAX = 1000;
+        await evm.catchRevert(minter.mintShares(FEE_MAX, market.address, supplier.address, heartsStaked, 1));
     });
 
     it('should revert ending immature stake', async () => {
         await evm.catchRevert(minter.mintEarnings(0, stakeId));
     });
 
+    it('should revert claiming invalid stakeId', async () => {
+        await evm.catchRevert(market.claimEarnings(0));
+    });
+
+    it('should revert claiming immature stakeId', async () => {
+        await evm.catchRevert(market.claimEarnings(stakeId));
+    });
+
     it('should revert calling market invalid minter', async () => {
         await evm.catchRevert(market.onSharesMinted(
             stakeId,
-            supplierAccount,
+            supplier.address,
             heartsStaked,
             shares
         ));
@@ -53,12 +57,16 @@ contract('MinterMarket - Invalid Scenarios', (accounts) => {
     });
 
     it('should revert calling invalid receiver', async () => {
-        await evm.catchRevert(minter.mintShares(buyerAccount, supplierAccount, heartsStaked, 1));
+        await evm.catchRevert(minter.mintShares(fee, buyer.address, supplier.address, heartsStaked, 1));
+    });
+
+    it('should revert 0 shares purchased', async () => {
+        await evm.catchRevert(market.connect(buyer.signer).buyShares(stakeId, buyer.address, 0));
     });
 
     it('should revert not enough shares available', async () => {
-        await market.buyShares(stakeId, buyerAccount, marketShares, { from: buyerAccount });
-        await evm.catchRevert(market.buyShares(stakeId, buyerAccount, marketShares, { from: buyerAccount }));
+        await market.connect(buyer.signer).buyShares(stakeId, buyer.address, marketShares);
+        await evm.catchRevert(market.connect(buyer.signer).buyShares(stakeId, buyer.address, marketShares));
     });
 
     it('should skip to stake maturity', async () => {
@@ -74,12 +82,15 @@ contract('MinterMarket - Invalid Scenarios', (accounts) => {
     });
 
     it('should revert claiming share earnings 2x', async () => {
-        await market.claimEarnings(stakeId, { from: buyerAccount });
-        await evm.catchRevert(market.claimEarnings(stakeId, { from: buyerAccount }));
+        await market.connect(buyer.signer).claimEarnings(stakeId);
+        await evm.catchRevert(market.connect(buyer.signer).claimEarnings(stakeId));
     });
 
-    it('should revert supplier withdraw 2x', async () => {
-        await market.supplierWithdraw(stakeId);
+    it('should revert minter withdraw none available', async () => {
+        await evm.catchRevert(minter.minterWithdraw());
+    });
+
+    it('should revert supplier withdraw none available', async () => {
         await evm.catchRevert(market.supplierWithdraw(stakeId));
     });
 });

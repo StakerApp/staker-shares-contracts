@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts\ShareMarket.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> ShareMarket.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">98.65% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>73/74</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">92.31% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>24/26</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>15/15</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>75/75</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.4;
+&nbsp;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./libraries/FullMath.sol";
+import "./MinterReceiver.sol";
+&nbsp;
+/// @title HEX Share Market
+/// @author Sam Presnal - Staker
+/// @dev Sell shares priced at the original purchase rate
+/// plus the applied premium
+contract ShareMarket is MinterReceiver {
+    IERC20 public immutable hexContract;
+    address public immutable minterContract;
+&nbsp;
+    /// @dev Share price is sharesBalance/heartsBalance
+    /// Both balances reduce on buyShares to maintain the price,
+    /// keep track of hearts owed to supplier, and determine
+    /// when the listing is no longer buyable
+    struct ShareListing {
+        uint72 sharesBalance;
+        uint72 heartsBalance;
+    }
+    mapping(uint40 =&gt; ShareListing) public shareListings;
+&nbsp;
+    /// @dev The values are initialized onSharesMinted and
+    /// onEarningsMinted respectively. Used to calculate personal
+    /// earnings for a listing sharesOwned/sharesTotal*heartsEarned
+    struct ShareEarnings {
+        uint72 sharesTotal;
+        uint72 heartsEarned;
+    }
+    mapping(uint40 =&gt; ShareEarnings) public shareEarnings;
+&nbsp;
+    /// @notice Maintains which addresses own shares of particular stakes
+    /// @dev heartsOwed is only set for the supplier to keep track of
+    /// repayment for creating the stake
+    struct ListingOwnership {
+        uint72 sharesOwned;
+        uint72 heartsOwed;
+    }
+    //keccak(stakeId, address) =&gt; ListingOwnership
+    mapping(bytes32 =&gt; ListingOwnership) internal shareOwners;
+&nbsp;
+    struct ShareOrder {
+        uint40 stakeId;
+        uint256 sharesPurchased;
+        address shareReceiver;
+    }
+&nbsp;
+    event AddListing(
+        uint40 indexed stakeId,
+        address indexed supplier,
+        uint256 data0 //shares | hearts &lt;&lt; 72
+    );
+    event AddEarnings(uint40 indexed stakeId, uint256 heartsEarned);
+    event BuyShares(
+        uint40 indexed stakeId,
+        address indexed owner,
+        uint256 data0, //sharesPurchased | sharesOwned &lt;&lt; 72
+        uint256 data1 //sharesBalance | heartsBalance &lt;&lt; 72
+    );
+    event ClaimEarnings(uint40 indexed stakeId, address indexed claimer, uint256 heartsClaimed);
+    event SupplierWithdraw(uint40 indexed stakeId, address indexed supplier, uint256 heartsWithdrawn);
+&nbsp;
+    uint256 private unlocked = 1;
+    modifier lock() {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(unlocked == 1, "LOCKED");
+        unlocked = 0;
+        _;
+        unlocked = 1;
+    }
+&nbsp;
+    constructor(IERC20 _hex, address _minter) {
+        hexContract = _hex;
+        minterContract = _minter;
+    }
+&nbsp;
+    /// @inheritdoc MinterReceiver
+    function onSharesMinted(
+        uint40 stakeId,
+        address supplier,
+        uint72 stakedHearts,
+        uint72 stakeShares
+    ) external override {
+        require(msg.sender == minterContract, "CALLER_NOT_MINTER");
+&nbsp;
+        //Seed pool with shares and hearts determining the rate
+        shareListings[stakeId] = ShareListing(stakeShares, stakedHearts);
+&nbsp;
+        //Store total shares to calculate user earnings for claiming
+        shareEarnings[stakeId].sharesTotal = stakeShares;
+&nbsp;
+        //Store how many hearts the supplier needs to be paid back
+        shareOwners[_hash(stakeId, supplier)].heartsOwed = uint72(stakedHearts);
+&nbsp;
+        emit AddListing(stakeId, supplier, uint256(uint72(stakeShares)) | (uint256(uint72(stakedHearts)) &lt;&lt; 72));
+    }
+&nbsp;
+    /// @inheritdoc MinterReceiver
+    function onEarningsMinted(uint40 stakeId, uint72 heartsEarned) external override {
+        require(msg.sender == minterContract, "CALLER_NOT_MINTER");
+        //Hearts earned and total shares now stored in earnings
+        //for payout calculations
+        shareEarnings[stakeId].heartsEarned = heartsEarned;
+        emit AddEarnings(stakeId, heartsEarned);
+    }
+&nbsp;
+    /// @return Supplier hearts payable resulting from user purchases
+    function supplierHeartsPayable(uint40 stakeId, address supplier) external view returns (uint256) {
+        (uint256 heartsBalance, ) = listingBalances(stakeId);
+        uint256 heartsOwed = shareOwners[_hash(stakeId, supplier)].heartsOwed;
+        return heartsOwed - heartsBalance;
+    }
+&nbsp;
+    /// @dev Used to calculate share price
+    /// @return hearts Balance of hearts remaining in the listing to be input
+    /// @return shares Balance of shares reamining in the listing to be sold
+    function listingBalances(uint40 stakeId) public view returns (uint256 hearts, uint256 shares) {
+        ShareListing memory listing = shareListings[stakeId];
+        hearts = listing.heartsBalance;
+        shares = listing.sharesBalance;
+    }
+&nbsp;
+    /// @dev Used to calculate personal earnings
+    /// @return heartsEarned Total hearts earned by the stake
+    /// @return sharesTotal Total shares originally on the market
+    function listingEarnings(uint40 stakeId) public view returns (uint256 heartsEarned, uint256 sharesTotal) {
+        ShareEarnings memory earnings = shareEarnings[stakeId];
+        heartsEarned = earnings.heartsEarned;
+        sharesTotal = earnings.sharesTotal;
+    }
+&nbsp;
+    /// @dev Shares owned is set to 0 when a user claims earnings
+    /// @return Current shares owned of a particular listing
+    function sharesOwned(uint40 stakeId, address owner) public view returns (uint256) {
+        return shareOwners[_hash(stakeId, owner)].sharesOwned;
+    }
+&nbsp;
+    /// @dev Hash together stakeId and address to form a key for
+    /// storage access
+    /// @return Listing address storage key
+    function _hash(uint40 stakeId, address addr) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(stakeId, addr));
+    }
+&nbsp;
+    /// @notice Allows user to purchase shares from multiple listings
+    /// @dev Lumps owed HEX into single transfer
+    function multiBuyShares(ShareOrder[] memory orders) external lock {
+        uint256 totalHeartsOwed;
+        for (uint256 i = 0; i &lt; orders.length; i++) {
+            ShareOrder memory order = orders[i];
+            totalHeartsOwed += _buyShares(order.stakeId, order.shareReceiver, order.sharesPurchased);
+        }
+&nbsp;
+        hexContract.transferFrom(msg.sender, address(this), totalHeartsOwed);
+    }
+&nbsp;
+    /// @notice Allows user to purchase shares from a single listing
+    /// @param stakeId HEX stakeId to purchase shares from
+    /// @param shareReceiver The receiver of the shares being purchased
+    /// @param sharesPurchased The number of shares to purchase
+    function buyShares(
+        uint40 stakeId,
+        address shareReceiver,
+        uint256 sharesPurchased
+    ) external lock {
+        uint256 heartsOwed = _buyShares(stakeId, shareReceiver, sharesPurchased);
+        hexContract.transferFrom(msg.sender, address(this), heartsOwed);
+    }
+&nbsp;
+    function _buyShares(
+        uint40 stakeId,
+        address shareReceiver,
+        uint256 sharesPurchased
+    ) internal returns (uint256 heartsOwed) {
+        require(sharesPurchased != 0, "INSUFFICIENT_SHARES_PURCHASED");
+&nbsp;
+        (uint256 _heartsBalance, uint256 _sharesBalance) = listingBalances(stakeId);
+        require(sharesPurchased &lt;= _sharesBalance, "INSUFFICIENT_SHARES_AVAILABLE");
+&nbsp;
+        //mulDivRoundingUp may result in 1 extra heart cost
+        //any shares purchased will always cost at least 1 heart
+        heartsOwed = FullMath.mulDivRoundingUp(sharesPurchased, _heartsBalance, _sharesBalance);
+&nbsp;
+        //Reduce hearts owed to remaining hearts balance if it exceeds it
+        //This can happen from extra 1 heart cost
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (heartsOwed &gt; _heartsBalance) <span class="cstat-no" title="statement not covered" >heartsOwed = _heartsBalance</span>;
+&nbsp;
+        //Reduce both sides of the pool to maintain price
+        uint256 sharesBalance = _sharesBalance - sharesPurchased;
+        uint256 heartsBalance = _heartsBalance - heartsOwed;
+        shareListings[stakeId] = ShareListing(uint72(sharesBalance), uint72(heartsBalance));
+&nbsp;
+        //Add shares purchased to currently owned shares if any
+        bytes32 shareOwner = _hash(stakeId, shareReceiver);
+        uint256 newSharesOwned = shareOwners[shareOwner].sharesOwned + sharesPurchased;
+        shareOwners[shareOwner].sharesOwned = uint72(newSharesOwned);
+        emit BuyShares(
+            stakeId,
+            shareReceiver,
+            uint256(uint72(sharesPurchased)) | (uint256(uint72(newSharesOwned)) &lt;&lt; 72),
+            uint256(uint72(sharesBalance)) | (uint256(uint72(heartsBalance)) &lt;&lt; 72)
+        );
+    }
+&nbsp;
+    /// @notice Withdraw earnings as a supplier
+    /// @param stakeId HEX stakeId to withdraw earnings from
+    /// @dev Combines supplier withdraw from two sources
+    /// 1. Hearts paid for supplied shares by market participants
+    /// 2. Hearts earned from staking supplied shares (buyer fee %)
+    /// Note: If a listing has ended, assigns all leftover shares before withdraw
+    function supplierWithdraw(uint40 stakeId) external lock {
+        //Track total withdrawable
+        uint256 totalHeartsOwed = 0;
+        bytes32 supplier = _hash(stakeId, msg.sender);
+&nbsp;
+        //Check to see if heartsOwed for sold shares in listing
+        uint256 heartsOwed = uint256(shareOwners[supplier].heartsOwed);
+        (uint256 heartsBalance, uint256 sharesBalance) = listingBalances(stakeId);
+        //The delta between heartsOwed and heartsBalance is created
+        //by users buying shares from the pool and reducing heartsBalance
+        if (heartsOwed &gt; heartsBalance) {
+            //Withdraw any hearts for shares sold
+            uint256 heartsPayable = heartsOwed - heartsBalance;
+            uint256 newHeartsOwed = heartsOwed - heartsPayable;
+            //Update hearts owed
+            shareOwners[supplier].heartsOwed = uint72(newHeartsOwed);
+&nbsp;
+            totalHeartsOwed = heartsPayable;
+        }
+&nbsp;
+        //Claim earnings including unsold shares only if the
+        //earnings have already been minted
+        (uint256 heartsEarned, ) = listingEarnings(stakeId);
+        if (heartsEarned != 0) {
+            //Check for unsold shares
+            if (sharesBalance != 0) {
+                //Add unsold shares to supplier balance
+                uint72 totalSharesOwned = shareOwners[supplier].sharesOwned + uint72(sharesBalance);
+                shareOwners[supplier].sharesOwned = totalSharesOwned;
+                //Close buying from share listing
+                delete shareListings[stakeId];
+                emit BuyShares(
+                    stakeId,
+                    msg.sender,
+                    uint256(uint72(sharesBalance)) | (uint256(totalSharesOwned) &lt;&lt; 72),
+                    0
+                );
+            }
+&nbsp;
+            totalHeartsOwed += _claimEarnings(stakeId);
+        }
+&nbsp;
+        require(totalHeartsOwed != 0, "NO_HEARTS_CLAIMABLE");
+        hexContract.transfer(msg.sender, totalHeartsOwed);
+&nbsp;
+        emit SupplierWithdraw(stakeId, msg.sender, totalHeartsOwed);
+    }
+&nbsp;
+    /// @notice Withdraw earnings as a market participant
+    /// @param stakeId HEX stakeId to withdraw earnings from
+    function claimEarnings(uint40 stakeId) external lock {
+        uint256 heartsEarned = _claimEarnings(stakeId);
+        hexContract.transfer(msg.sender, heartsEarned);
+    }
+&nbsp;
+    function _claimEarnings(uint40 stakeId) internal returns (uint256 heartsOwed) {
+        (uint256 heartsEarned, uint256 sharesTotal) = listingEarnings(stakeId);
+        require(sharesTotal != 0, "LISTING_NOT_FOUND");
+        require(heartsEarned != 0, "SHARES_NOT_MATURE");
+&nbsp;
+        bytes32 owner = _hash(stakeId, msg.sender);
+        uint256 ownedShares = shareOwners[owner].sharesOwned;
+        heartsOwed = FullMath.mulDiv(heartsEarned, ownedShares, sharesTotal);
+        require(heartsOwed != 0, "NO_HEARTS_CLAIMABLE");
+&nbsp;
+        shareOwners[owner].sharesOwned = 0;
+        emit ClaimEarnings(stakeId, msg.sender, heartsOwed);
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon May 03 2021 02:16:18 GMT-0400 (Eastern Daylight Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

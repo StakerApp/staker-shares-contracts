@@ -1,4 +1,6 @@
-const PREFIX = "Returned error: VM Exception while processing transaction: ";
+const { expect } = require("chai");
+
+const PREFIX = "VM Exception while processing transaction: ";
 
 tryCatch = async (promise, message) => {
     try {
@@ -6,8 +8,7 @@ tryCatch = async (promise, message) => {
         throw null;
     }
     catch (error) {
-        assert(error, "Expected an error but did not get one");
-        assert(error.message.startsWith(PREFIX + message), "Expected an error starting with '" + PREFIX + message + "' but got '" + error.message + "' instead");
+        expect(error.message.startsWith(PREFIX + message)).to.be.true;
     }
 };
 

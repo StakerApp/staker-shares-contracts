@@ -1,18 +1,109 @@
-# Staker Shares Contracts
+# ShareMinter ShareMarket Contracts
 
 ## Ropsten
-- HEX: https://ropsten.etherscan.io/address/0xF1633e8D441F6F5E953956e31923F98B53c9fd89
-- ShareMinter: https://ropsten.etherscan.io/address/0xef2aCd0d6a82eEA0E50ae9CC8d1B774C4672007c
-- ShareMarket: https://ropsten.etherscan.io/address/0xa1af6542204C84576BF3334f6fF085d7FA837fc1
+- HEX: https://ropsten.etherscan.io/address/0xA7166181198A2df7F42Ef46A0B3bD9DA95D3354B
+- ShareMinter: https://ropsten.etherscan.io/address/0x7DaB9E96799faA49a8A6AB2261CfbeDd77e14807
+- ShareMarket: https://ropsten.etherscan.io/address/0xf4C53c2Df7F75cF7aB57EFc7cc093A156dC967E5
 
 ## Mainnet
 - HEX: https://etherscan.io/address/0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39
-- ShareMinter: https://etherscan.io/address/0x47d62c3a4e96a7d45e9cf9fe6d4969c9ca1c9077
-- ShareMarket: https://etherscan.io/address/0x0bce7f18fc2eacec694de53f1834cbbf5842f43c
+- ShareMinter: https://etherscan.io/address/0x0f0f4f6b35ED62a14eB9fFDd301C071A9b68D2bd
+- ShareMarket: https://etherscan.io/address/0x1562092CE09E9ada5922fC557C3508Ea368ED9cd
 
-## Setup for Development - Truffle
-1. Run [Ganache](https://www.trufflesuite.com/ganache)
-2. Execute `truffle test`
+<br>
+
+_________________
+
+## ShareMinter
+
+### Methods
+`mintShares` - Hex stakeStart and three new fields:
+1. Receiver address (contract to mint shares to)
+2. Supplier address (for HEX repayment)
+3. Share rate premium 0-999 (0.0% - 99.9%)
+
+`mintEarnings` - Normal hex endStake that transfers hearts earned to specified receiver address
+
+`minterWithdraw` - If someone other than the original stake minter calls `mintEarnings` **before** the grace period ends, then the minter can later come back and withdraw his earnings.
+
+### Share Rate Premium
+
+The share rate premium dictates how much the minter would like to increase the cost of the shares being sent to the receiver.
+```
+Example
+1. Call `mintShares` with 1,000,000 HEX staked and share rate premium of 1%
+2. Stake creates 10T shares
+3. Receiver gets 9.9T shares (1% premium = 0.1T shares)
+4. Send 1,000,000 HEX staked and 9.9T shares to receiver
+5. Call `mintEarnings` and minter gets 1% of HEX rewarded
+6. Receiver gets 99% of the HEX rewarded
+
+Original share price
+10T Shares / 1M HEX = 10M shares per HEX
+
+Receiver share price
+9.9T shares / 1M HEX = 9.9M shares per HEX
+```
+
+### Rules
+
+The minter (caller of the contract) is considered the custodian of the stake so these rules apply:
+
+1. Premature end stake is disabled
+2. Anyone can call `mintEarnings`
+3. If no one calls `mintEarnings` within **10 days** after the unlock date, **the minter's earnings are paid to the first caller**.
+
+### Sequence Diagram
+![ShareMinter](./diagrams/ShareMinter.png "ShareMinter")
+
+<br>
+
+_________________
+
+## ShareMarket *(extends MinterReceiver)*
+
+### Methods
+`buyShares(stakeId, shareReceiver, sharesPurchased)` - Can buy shares for any address
+
+`multiBuyShares` - Lumps hex owed into one transfer to save on gas
+
+`claimEarnings(stakeId)` - Claim stake earnings after they have been minted to the market
+
+`supplierWithdraw(stakeId)` - Claim stake earnings after they have been minted to the market
+
+### Pros
+1. Gas savings - `claimEarnings` costs approximately as much as an ERC20 transfer
+2. Buy shares for any address
+3. Don't worry about ending the stake
+4. Discounted shares and ability to buy into a stake that has accrued interest already
+
+### Cons
+1. No emergency end stake
+2. If the share rate premium is worth less than the cost to end stake then there's a risk it will fall on to a share owner to end it
+
+### Gas Usage
+![ShareMarketGasUsage](./diagrams/ShareMarketGasUsage.png "ShareMarketGasUsage")
+
+<br>
+
+_________________
+
+## Setup for Development - Hardhat
+1. Run `npm install` to pull in packages
+2. Available commands:
+```
+npm run <command>
+  stage
+    npm run lint & npm run test & npm run docs & npm run coverage
+  compile
+    hardhat compile
+  lint
+    hardhat check
+  docs
+    yarn run hardhat docgen
+  coverage
+    hardhat coverage
+```
 
 ## Setup for Rinkeby / Mainnet
 1. Create a file named `.env` in the root of the project
@@ -20,56 +111,26 @@
 ```
 PK=YOUR_PRIVATE_KEY_HERE
 INFURA_API_KEY=YOUR_INFURA_API_KEY_HERE
+ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY_HERE
 ```
 
-## Helpful Commands
+## Commands
 
-### Running tests on Ganache
+### Running tests
 
-Optional `--debug` flag requires methods to be wrapped in `await debug(contract_execution)`
 ```
-truffle test --show-events
+npx hardhat test
 ```
 
 ### Deploy to Ropsten
-
-Optional `--reset` flag to redeploy new contracts
 ```
-truffle migrate --reset --network ropsten
+npx hardhat run --network ropsten scripts/deploy_ropsten.js
 ```
 
-### Verifying Contract on ropsten.etherscan.io
+### Deploy to Mainnet
 
-Combines contract dependencies into single file (you'll need to remove duplicates of the license)
 ```
-npm run flatten
+npx hardhat run --network mainnet scripts/deploy_mainnet.js
 ```
 
-### Executing Contract Functions From Truffle CLI
 
-Approve market contract to transfer HEX from EOA
-```
-truffle console --network ropsten
-
-hex = await IHEX.at('0xF1633e8D441F6F5E953956e31923F98B53c9fd89')
-minter = await ShareMinter.at('0xef2aCd0d6a82eEA0E50ae9CC8d1B774C4672007c')
-market = await ShareMarket.at('0xa1af6542204C84576BF3334f6fF085d7FA837fc1')
-
-await hex.approve(minter.address, 1000000000000000)
-await hex.approve(market.address, 1000000000000000)
-
-await minter.mintShares(market.address, accounts[0], 5000000000000, 1)
-await minter.mintShares(market.address, accounts[0], 5000000000000, 1)
-await minter.mintShares(market.address, accounts[0], 5000000000000, 1)
-await minter.mintShares(market.address, accounts[0], 5000000000000, 1)
-
-// get stakeId and shares from events
-stakeId = 1130
-await market.buyShares(stakeId, accounts[0], 2000000000000)
-await market.multiBuyShares([{ stakeId: stakeId + 1, shareReceiver: accounts[0], sharesPurchased: 2000000000000 }, { stakeId: stakeId + 2, shareReceiver: accounts[0], sharesPurchased: 2000000000000 }, { stakeId: stakeId + 3, shareReceiver: accounts[0], sharesPurchased: 2000000000000 }])
-
-// after stake has matured mint earnings
-await minter.mintEarnings(0, 1101)
-
-await market.claimEarnings(1101)
-```

@@ -1,4 +1,8 @@
 node_modules/
-build/
+artifacts/
+cache/
+bin/
+coverage.json
 package-lock.json
+yarn.lock
 .env

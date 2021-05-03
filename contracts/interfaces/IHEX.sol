@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.3;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.4;
 
 interface IHEX {
     function approve(address spender, uint256 amount) external returns (bool);
@@ -25,12 +25,9 @@ interface IHEX {
             bool isAutoStake
         );
 
-    function stakeStart(uint256 newStakedHearts, uint256 newStakedDays)
-        external;
+    function stakeStart(uint256 newStakedHearts, uint256 newStakedDays) external;
 
-    function transfer(address recipient, uint256 amount)
-        external
-        returns (bool);
+    function transfer(address recipient, uint256 amount) external returns (bool);
 
     function transferFrom(
         address sender,
