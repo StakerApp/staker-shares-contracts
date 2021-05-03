@@ -30,10 +30,11 @@ contract ShareMinter {
 
     event MintShares(
         uint40 indexed stakeId,
+        address indexed minter,
         MinterReceiver indexed receiver,
         uint256 data0 //total shares | staked hearts << 72
     );
-    event MintEarnings(uint40 indexed stakeId, MinterReceiver indexed receiver, uint72 hearts);
+    event MintEarnings(uint40 indexed stakeId, address indexed caller, MinterReceiver indexed receiver, uint72 hearts);
     event MinterWithdraw(address indexed minter, uint256 heartsWithdrawn);
 
     uint256 private unlocked = 1;
@@ -74,15 +75,20 @@ contract ShareMinter {
         (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint24 unlockDay) =
             _startStake(newStakedHearts, newStakedDays);
 
-        //Calculate minterShares and marketShares
+        //Calculate minterShares and receiverShares
         uint256 minterShares = FullMath.mulDiv(shareRatePremium, stakeShares, FEE_SCALE);
-        uint256 marketShares = stakeShares - minterShares;
+        uint256 receiverShares = stakeShares - minterShares;
 
-        //Mint shares to the market and store stake info for later
-        receiver.onSharesMinted(stakeId, supplier, stakedHearts, uint72(marketShares));
+        //Mint shares to the receiver and store stake info for later
+        receiver.onSharesMinted(stakeId, supplier, stakedHearts, uint72(receiverShares));
         stakes[stakeId] = Stake(shareRatePremium, unlockDay, msg.sender, receiver);
 
-        emit MintShares(stakeId, receiver, uint256(uint72(stakeShares)) | (uint256(uint72(stakedHearts)) << 72));
+        emit MintShares(
+            stakeId,
+            msg.sender,
+            receiver,
+            uint256(uint72(stakeShares)) | (uint256(uint72(stakedHearts)) << 72)
+        );
     }
 
     function _startStake(uint256 newStakedHearts, uint256 newStakedDays)
@@ -111,20 +117,20 @@ contract ShareMinter {
         uint256 currentDay = hexContract.currentDay();
         require(currentDay >= stake.unlockDay, "STAKE_NOT_MATURE");
 
-        //Calculate minter earnings and market earnings
+        //Calculate minter earnings and receiver earnings
         uint256 heartsEarned = _endStake(stakeIndex, stakeId);
         uint256 minterEarnings = FullMath.mulDiv(stake.shareRatePremium, heartsEarned, FEE_SCALE);
-        uint256 marketEarnings = heartsEarned - minterEarnings;
+        uint256 receiverEarnings = heartsEarned - minterEarnings;
 
-        //Transfer market earnings to receiver contract and notify
+        //Transfer receiver earnings to receiver contract and notify
         MinterReceiver receiver = stake.receiver;
-        hexContract.transfer(address(receiver), marketEarnings);
-        receiver.onEarningsMinted(stakeId, uint72(marketEarnings));
+        hexContract.transfer(address(receiver), receiverEarnings);
+        receiver.onEarningsMinted(stakeId, uint72(receiverEarnings));
 
         //Pay minter or record payment for claiming later
         _payMinterEarnings(currentDay, stake.unlockDay, stake.minter, minterEarnings);
 
-        emit MintEarnings(stakeId, receiver, uint72(heartsEarned));
+        emit MintEarnings(stakeId, msg.sender, receiver, uint72(heartsEarned));
 
         delete stakes[stakeId];
     }
@@ -148,7 +154,7 @@ contract ShareMinter {
         uint256 minterEarnings
     ) internal {
         uint256 lateDays = currentDay - unlockDay;
-        if (msg.sender != minter && lateDays < GRACE_PERIOD_DAYS) {
+        if (msg.sender != minter && lateDays <= GRACE_PERIOD_DAYS) {
             minterHeartsOwed[minter] += minterEarnings;
         } else {
             hexContract.transfer(msg.sender, minterEarnings);

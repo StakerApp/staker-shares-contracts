@@ -1,14 +1,14 @@
 # ShareMinter ShareMarket Contracts
 
 ## Ropsten
-- HEX: https://ropsten.etherscan.io/address/0xA7166181198A2df7F42Ef46A0B3bD9DA95D3354B
-- ShareMinter: https://ropsten.etherscan.io/address/0x7DaB9E96799faA49a8A6AB2261CfbeDd77e14807
-- ShareMarket: https://ropsten.etherscan.io/address/0xf4C53c2Df7F75cF7aB57EFc7cc093A156dC967E5
+- HEX: https://ropsten.etherscan.io/address/0xaaad01f209775a8c2413f1f0fe985e2f284a8089
+- ShareMinter: https://ropsten.etherscan.io/address/0x37d241C8F1DF0ee1f201aED648E4Fbafa05868b1
+- ShareMarket: https://ropsten.etherscan.io/address/0x1592Ed5c72B43DAA5d757Ee9e1970BB16f7E2179
 
 ## Mainnet
 - HEX: https://etherscan.io/address/0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39
-- ShareMinter: https://etherscan.io/address/0x0f0f4f6b35ED62a14eB9fFDd301C071A9b68D2bd
-- ShareMarket: https://etherscan.io/address/0x1562092CE09E9ada5922fC557C3508Ea368ED9cd
+- ShareMinter: 
+- ShareMarket: 
 
 <br>
 
