@@ -20,7 +20,7 @@ describe('MinterMarketRevert - Invalid Scenarios', () => {
         [supplier, buyer, claimer] = await init.getAccounts();
 
         env.init(hex, minter, market);
-        await env.seedEnvironment(supplier, buyer, claimer);
+        await env.seedEnvironment([supplier, buyer, claimer]);
 
         //mint shares in setup
         await minter.mintShares(fee, market.address, supplier.address, heartsStaked, 1);
@@ -90,7 +90,8 @@ describe('MinterMarketRevert - Invalid Scenarios', () => {
         await evm.catchRevert(minter.minterWithdraw());
     });
 
-    it('should revert supplier withdraw none available', async () => {
+    it('should revert supplier withdraw 2x', async () => {
+        await market.supplierWithdraw(stakeId);
         await evm.catchRevert(market.supplierWithdraw(stakeId));
     });
 });

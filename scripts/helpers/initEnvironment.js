@@ -19,6 +19,20 @@ getAccounts = async () => {
     ];
 }
 
+getManyAccounts = async (count) => {
+    const accounts = [];
+    const signers = await ethers.getSigners();
+    for (var i = 0; i < count; i++) {
+        const signer = signers[i];
+        const address = signer ? await signer.getAddress() : null;
+        accounts.push({
+            signer,
+            address
+        });
+    }
+    return accounts;
+}
+
 deployContracts = async (hexAddress, minterAddress, marketAddress) => {
     const HEX = await ethers.getContractFactory("HEX");
     const ShareMinter = await ethers.getContractFactory("ShareMinter");
@@ -43,5 +57,6 @@ deployContracts = async (hexAddress, minterAddress, marketAddress) => {
 
 module.exports = {
     getAccounts,
+    getManyAccounts,
     deployContracts
 }

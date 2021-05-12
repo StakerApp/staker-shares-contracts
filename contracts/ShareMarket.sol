@@ -108,8 +108,9 @@ contract ShareMarket is MinterReceiver {
 
     /// @return Supplier hearts payable resulting from user purchases
     function supplierHeartsPayable(uint40 stakeId, address supplier) external view returns (uint256) {
-        (uint256 heartsBalance, ) = listingBalances(stakeId);
         uint256 heartsOwed = shareOwners[_hash(stakeId, supplier)].heartsOwed;
+        if (heartsOwed == 0) return 0;
+        (uint256 heartsBalance, ) = listingBalances(stakeId);
         return heartsOwed - heartsBalance;
     }
 
@@ -234,27 +235,30 @@ contract ShareMarket is MinterReceiver {
         //earnings have already been minted
         (uint256 heartsEarned, ) = listingEarnings(stakeId);
         if (heartsEarned != 0) {
-            //Check for unsold shares
+            uint256 supplierShares = shareOwners[supplier].sharesOwned;
+
+            //Check for unsold market shares
             if (sharesBalance != 0) {
-                //Add unsold shares to supplier balance
-                uint72 totalSharesOwned = shareOwners[supplier].sharesOwned + uint72(sharesBalance);
-                shareOwners[supplier].sharesOwned = totalSharesOwned;
+                //Add unsold shares to supplier shares
+                supplierShares += sharesBalance;
+                //Update storage to reflect new shares
+                shareOwners[supplier].sharesOwned = uint72(supplierShares);
                 //Close buying from share listing
                 delete shareListings[stakeId];
                 emit BuyShares(
                     stakeId,
                     msg.sender,
-                    uint256(uint72(sharesBalance)) | (uint256(totalSharesOwned) << 72),
+                    uint256(uint72(sharesBalance)) | (uint256(supplierShares) << 72),
                     0
                 );
             }
 
-            totalHeartsOwed += _claimEarnings(stakeId);
+            //Ensure supplier has shares (claim reverts otherwise)
+            if (supplierShares != 0) totalHeartsOwed += _claimEarnings(stakeId);
         }
 
-        require(totalHeartsOwed != 0, "NO_HEARTS_CLAIMABLE");
+        require(totalHeartsOwed != 0, "NO_HEARTS_OWED");
         hexContract.transfer(msg.sender, totalHeartsOwed);
-
         emit SupplierWithdraw(stakeId, msg.sender, totalHeartsOwed);
     }
 
@@ -262,6 +266,7 @@ contract ShareMarket is MinterReceiver {
     /// @param stakeId HEX stakeId to withdraw earnings from
     function claimEarnings(uint40 stakeId) external lock {
         uint256 heartsEarned = _claimEarnings(stakeId);
+        require(heartsEarned != 0, "NO_HEARTS_EARNED");
         hexContract.transfer(msg.sender, heartsEarned);
     }
 
@@ -272,9 +277,9 @@ contract ShareMarket is MinterReceiver {
 
         bytes32 owner = _hash(stakeId, msg.sender);
         uint256 ownedShares = shareOwners[owner].sharesOwned;
-        heartsOwed = FullMath.mulDiv(heartsEarned, ownedShares, sharesTotal);
-        require(heartsOwed != 0, "NO_HEARTS_CLAIMABLE");
+        require(ownedShares != 0, "NO_SHARES_OWNED");
 
+        heartsOwed = FullMath.mulDiv(heartsEarned, ownedShares, sharesTotal);
         shareOwners[owner].sharesOwned = 0;
         emit ClaimEarnings(stakeId, msg.sender, heartsOwed);
     }

@@ -20,7 +20,7 @@ describe('MinterEarnings - Valid Scenarios', () => {
         [minter1, minter2, minter3] = await init.getAccounts();
 
         env.init(hex, minter, market);
-        await env.seedEnvironment(minter1, minter2, minter3);
+        await env.seedEnvironment([minter1, minter2, minter3]);
 
         //Minter 1
         await minter.mintShares(fee, market.address, minter1.address, heartsStaked, 1);
