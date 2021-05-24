@@ -998,8 +998,7 @@ contract StakeableToken is GlobalsAndUtility {
 }
 
 contract Testable is StakeableToken {
-    function mintHearts(address receiver) external {
-        uint256 amount = 1000000 * (10**uint256(decs));
+    function mintHearts(address receiver, uint256 amount) external {
         _mint(receiver, amount);
     }
 

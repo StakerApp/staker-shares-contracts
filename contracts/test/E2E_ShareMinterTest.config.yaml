@@ -1,0 +1,14 @@
+checkAsserts: true
+coverage: true
+codeSize: 0x60000
+corpusDir: echidna_e2e_share_minter_corpus
+seqLen: 10
+testLimit: 10000
+timeout: 600 # 10 minutes
+
+# blacklist
+filterFunctions:
+  [
+    'E2E_ShareMinterTest.onSharesMinted(uint40,address,uint72,uint72)',
+    'E2E_ShareMinterTest.onEarningsMinted(uint40,uint72)'
+  ]

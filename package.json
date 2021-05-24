@@ -31,6 +31,7 @@
     "test": "hardhat test",
     "lint": "hardhat check",
     "docs": "yarn run hardhat docgen",
-    "coverage": "hardhat coverage"
+    "coverage": "hardhat coverage",
+    "flatten": "hardhat flatten ./contracts/ShareMinter.sol > ./contracts/test/contracts/ShareMinterFlat.sol & hardhat flatten ./contracts/ShareMarket.sol > ./contracts/test/contracts/ShareMarketFlat.sol & hardhat flatten ./contracts/MinterReceiver.sol > ./contracts/test/contracts/MinterReceiverFlat.sol & hardhat flatten ./contracts/libraries/HEX.sol > ./contracts/test/contracts/HEXFlat.sol"
   }
 }
