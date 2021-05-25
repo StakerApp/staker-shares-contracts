@@ -29,10 +29,7 @@ interface IERC165 {
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }
 
-
 // File @openzeppelin/contracts/utils/introspection/ERC165Checker.sol@v4.1.0
-
-
 
 pragma solidity ^0.8.0;
 
@@ -53,7 +50,8 @@ library ERC165Checker {
     function supportsERC165(address account) internal view returns (bool) {
         // Any contract that implements ERC165 must explicitly indicate support of
         // InterfaceId_ERC165 and explicitly indicate non-support of InterfaceId_Invalid
-        return _supportsERC165Interface(account, type(IERC165).interfaceId) &&
+        return
+            _supportsERC165Interface(account, type(IERC165).interfaceId) &&
             !_supportsERC165Interface(account, _INTERFACE_ID_INVALID);
     }
 
@@ -65,8 +63,7 @@ library ERC165Checker {
      */
     function supportsInterface(address account, bytes4 interfaceId) internal view returns (bool) {
         // query support of both ERC165 as per the spec and support of _interfaceId
-        return supportsERC165(account) &&
-            _supportsERC165Interface(account, interfaceId);
+        return supportsERC165(account) && _supportsERC165Interface(account, interfaceId);
     }
 
     /**
@@ -79,7 +76,11 @@ library ERC165Checker {
      *
      * _Available since v3.4._
      */
-    function getSupportedInterfaces(address account, bytes4[] memory interfaceIds) internal view returns (bool[] memory) {
+    function getSupportedInterfaces(address account, bytes4[] memory interfaceIds)
+        internal
+        view
+        returns (bool[] memory)
+    {
         // an array of booleans corresponding to interfaceIds and whether they're supported or not
         bool[] memory interfaceIdsSupported = new bool[](interfaceIds.length);
 
@@ -133,15 +134,13 @@ library ERC165Checker {
      */
     function _supportsERC165Interface(address account, bytes4 interfaceId) private view returns (bool) {
         bytes memory encodedParams = abi.encodeWithSelector(IERC165(account).supportsInterface.selector, interfaceId);
-        (bool success, bytes memory result) = account.staticcall{ gas: 30000 }(encodedParams);
+        (bool success, bytes memory result) = account.staticcall{gas: 30000}(encodedParams);
         if (result.length < 32) return false;
         return success && abi.decode(result, (bool));
     }
 }
 
-
 // File contracts/libraries/FullMath.sol
-
 
 pragma solidity >=0.4.0;
 
@@ -267,11 +266,7 @@ library FullMath {
     }
 }
 
-
-
 // File @openzeppelin/contracts/utils/introspection/ERC165.sol@v4.1.0
-
-
 
 pragma solidity ^0.8.0;
 
@@ -298,9 +293,7 @@ abstract contract ERC165 is IERC165 {
     }
 }
 
-
 // File contracts/MinterReceiver.sol
-
 
 pragma solidity 0.8.4;
 
@@ -332,14 +325,9 @@ abstract contract MinterReceiver is ERC165 {
     function onEarningsMinted(uint40 stakeId, uint72 heartsEarned) external virtual;
 }
 
-
 // File contracts/ShareMinter.sol
 
-
 pragma solidity 0.8.4;
-
-
-
 
 /// @title HEX Share Minter
 /// @author Sam Presnal - Staker
@@ -355,7 +343,8 @@ contract ShareMinter {
 
     struct Stake {
         uint16 shareRatePremium;
-        uint24 unlockDay;
+        uint16 lockedDay;
+        uint16 stakedDays;
         address minter;
         MinterReceiver receiver;
     }
@@ -407,7 +396,7 @@ contract ShareMinter {
         hexContract.transferFrom(msg.sender, address(this), newStakedHearts);
 
         //Start stake
-        (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint24 unlockDay) =
+        (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint16 lockedDay, uint16 stakedDays) =
             _startStake(newStakedHearts, newStakedDays);
 
         //Calculate minterShares and receiverShares
@@ -416,7 +405,7 @@ contract ShareMinter {
 
         //Mint shares to the receiver and store stake info for later
         receiver.onSharesMinted(stakeId, supplier, stakedHearts, uint72(receiverShares));
-        stakes[stakeId] = Stake(shareRatePremium, unlockDay, msg.sender, receiver);
+        stakes[stakeId] = Stake(shareRatePremium, lockedDay, stakedDays, msg.sender, receiver);
 
         emit MintShares(
             stakeId,
@@ -432,14 +421,15 @@ contract ShareMinter {
             uint40 stakeId,
             uint72 stakedHearts,
             uint72 stakeShares,
-            uint24 unlockDay
+            uint16 lockedDay,
+            uint16 stakedDays
         )
     {
         hexContract.stakeStart(newStakedHearts, newStakedDays);
         uint256 stakeCount = hexContract.stakeCount(address(this));
         (uint40 _stakeId, uint72 _stakedHearts, uint72 _stakeShares, uint16 _lockedDay, uint16 _stakedDays, , ) =
             hexContract.stakeLists(address(this), stakeCount - 1);
-        return (_stakeId, _stakedHearts, _stakeShares, _lockedDay + _stakedDays);
+        return (_stakeId, _stakedHearts, _stakeShares, _lockedDay, _stakedDays);
     }
 
     /// @notice Ends stake, transfers hearts, and calls receiver onEarningsMinted
@@ -450,7 +440,7 @@ contract ShareMinter {
         //Ensure the stake has matured
         Stake memory stake = stakes[stakeId];
         uint256 currentDay = hexContract.currentDay();
-        require(currentDay >= stake.unlockDay, "STAKE_NOT_MATURE");
+        require(currentDay >= stake.lockedDay + stake.stakedDays, "STAKE_NOT_MATURE");
 
         //Calculate minter earnings and receiver earnings
         uint256 heartsEarned = _endStake(stakeIndex, stakeId);
@@ -463,7 +453,7 @@ contract ShareMinter {
         receiver.onEarningsMinted(stakeId, uint72(receiverEarnings));
 
         //Pay minter or record payment for claiming later
-        _payMinterEarnings(currentDay, stake.unlockDay, stake.minter, minterEarnings);
+        _payMinterEarnings(currentDay, stake.lockedDay + stake.stakedDays, stake.minter, minterEarnings);
 
         emit MintEarnings(stakeId, msg.sender, receiver, uint72(heartsEarned));
 

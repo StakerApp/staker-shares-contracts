@@ -4,7 +4,7 @@ pragma solidity 0.8.4;
 import "../../interfaces/IHEX.sol";
 
 contract HEX is IHEX {
-    uint16 public _currentDay = 1;
+    uint256 public _currentDay = 1;
     uint40 public _stakeId;
     mapping(address => uint256) public _stakeCount;
     mapping(address => uint256) public _balances;
@@ -82,7 +82,7 @@ contract HEX is IHEX {
             uint40(id),
             uint72(newStakedHearts),
             uint72(newStakedHearts),
-            uint16(_currentDay),
+            uint16(_currentDay + 1),
             uint16(newStakedDays),
             0,
             false
@@ -113,7 +113,7 @@ contract HEX is IHEX {
         _balances[recipient] += amount;
     }
 
-    function setCurrentDay(uint16 day) public {
+    function setCurrentDay(uint256 day) public {
         _currentDay = day;
     }
 }

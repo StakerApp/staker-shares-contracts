@@ -3,7 +3,7 @@ coverage: true
 codeSize: 0x60000
 corpusDir: echidna_e2e_share_minter_corpus
 seqLen: 10
-testLimit: 10000
+testLimit: 100000
 timeout: 600 # 10 minutes
 
 # blacklist

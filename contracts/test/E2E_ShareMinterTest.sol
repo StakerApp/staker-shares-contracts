@@ -47,11 +47,11 @@ contract E2E_ShareMinterTest is MinterReceiver {
     }
 
     function mint_shares(
-        uint256 hearts,
+        uint72 hearts,
         uint256 randomFee,
         uint256 stakedDays
     ) public {
-        hexContract.mintHearts(address(this), hearts);
+        hexContract.mintHearts(address(this), uint256(hearts));
         minter.mintShares(uint16(randomFee), MinterReceiver(this), address(this), hearts, uint16(stakedDays));
     }
 
@@ -69,29 +69,23 @@ contract E2E_ShareMinterTest is MinterReceiver {
         minter.minterWithdraw();
     }
 
-    function echidna_test_mint() public returns (bool) {
-        uint256 hearts = random();
-        uint256 randomFee = random() % 999;
-        uint256 stakedDays = random() % 5555;
-
-        uint256 sharesLength = shares.length;
-        mint_shares(hearts, randomFee, stakedDays);
-
-        return sharesLength + 1 == shares.length;
+    function hex_skip_days(uint8 skipDays) public {
+        uint256 currentDay = hexContract._currentDay();
+        hexContract.setCurrentDay(currentDay + skipDays);
     }
 
-    function echidna_test_end() public returns (bool) {
-        echidna_test_mint();
+    function echidna_all_stakes_received() public view returns (bool) {
+        uint256 stakeCount = hexContract.stakeCount(address(minter));
+        return stakeCount == shares.length;
+    }
 
-        uint256 sharesLength = shares.length;
-        require(sharesLength > 0, "shares must exist");
-
-        uint256 randomPosition = random() % sharesLength;
-        MintedShares memory mintedShares = shares[randomPosition];
-
-        uint256 earningsCount = earnings.length;
-        hexContract.setCurrentDay(uint16(mintedShares.unlockDay));
-        minter.mintEarnings(0, mintedShares.stakeId);
-        return earningsCount + 1 == earnings.length;
+    function echidna_no_early_end_stake() public view returns (bool) {
+        uint40 latestStakeId = hexContract._stakeId();
+        for (uint40 stakeId = 0; stakeId <= latestStakeId; stakeId++) {
+            (, , , uint16 lockedDay, uint16 stakedDays, uint16 unlockedDay, ) =
+                hexContract._stakes(address(minter), stakeId);
+            if (unlockedDay != 0 && unlockedDay < lockedDay + stakedDays) return false;
+        }
+        return true;
     }
 }
