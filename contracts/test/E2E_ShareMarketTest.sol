@@ -32,8 +32,7 @@ contract E2E_ShareMarketTest is ShareMarket {
     }
     Listing[] public _listings;
 
-    mapping(address => uint256) private _heartsInterestEarned;
-    mapping(address => uint256) private _heartsMinted;
+    uint256 private _heartsInterestMinted;
 
     function mint_shares(
         uint72 stakeHearts,
@@ -44,7 +43,6 @@ contract E2E_ShareMarketTest is ShareMarket {
         Listing memory listing = Listing(_latestStakeId++, msg.sender, stakeHearts, stakeShares, rewardHearts, false);
 
         _hexState.burnHearts(msg.sender, listing.stakedHearts);
-        _heartsMinted[msg.sender] += listing.stakedHearts;
         this.onSharesMinted(listing.stakeId, listing.supplier, listing.stakedHearts, listing.stakeShares);
 
         _listings.push(listing);
@@ -58,7 +56,7 @@ contract E2E_ShareMarketTest is ShareMarket {
 
             listing.earningsMinted = true;
             _hexState.mintHearts(address(this), listing.heartsEarned);
-            _heartsInterestEarned[listing.supplier] += listing.heartsEarned - listing.stakedHearts;
+            _heartsInterestMinted += listing.heartsEarned - listing.stakedHearts;
             this.onEarningsMinted(listing.stakeId, listing.heartsEarned);
         }
     }
@@ -115,10 +113,10 @@ contract E2E_ShareMarketTest is ShareMarket {
 
     function echidna_balance_never_exceeds_initial_plus_interest() public view returns (bool) {
         return
-            hexContract.balanceOf(address(0x10000)) <= INITIAL_BALANCE + _heartsInterestEarned[address(0x10000)] &&
-            hexContract.balanceOf(address(0x20000)) <= INITIAL_BALANCE + _heartsInterestEarned[address(0x20000)] &&
+            hexContract.balanceOf(address(0x10000)) <= INITIAL_BALANCE + _heartsInterestMinted &&
+            hexContract.balanceOf(address(0x20000)) <= INITIAL_BALANCE + _heartsInterestMinted &&
             hexContract.balanceOf(address(0x00a329C0648769a73afAC7F9381e08fb43DBEA70)) <=
-            INITIAL_BALANCE + _heartsInterestEarned[address(0x00a329C0648769a73afAC7F9381e08fb43DBEA70)];
+            INITIAL_BALANCE + _heartsInterestMinted;
     }
 
     //hearts in listing cannot exceed hearts staked

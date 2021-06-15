@@ -44,10 +44,6 @@ contract E2E_ShareMinterTest is MinterReceiver, ShareMinter {
 
     function onEarningsMinted(uint40 stakeId, uint72 heartsEarned) external override {}
 
-    function echidna_no_balance() public view returns (bool) {
-        return hexContract.balanceOf(address(0x90000)) == 0;
-    }
-
     //mint earnings minter fee invariant
     function echidna_minter_withdraw() public returns (bool) {
         uint256 heartsOwed = minterHeartsOwed[msg.sender];

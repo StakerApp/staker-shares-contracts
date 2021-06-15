@@ -3,7 +3,7 @@ coverage: true
 codeSize: 0x60000
 corpusDir: echidna_e2e_share_minter_corpus
 seqLen: 150
-testLimit: 1000000
+testLimit: 250000
 timeout: 36000 # 60 minutes
 maxTimeDelay: 483840000 # 5600 days
 maxBlockDelay: 48384000
