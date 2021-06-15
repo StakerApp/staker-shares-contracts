@@ -2,9 +2,14 @@ checkAsserts: true
 coverage: true
 codeSize: 0x60000
 corpusDir: echidna_e2e_share_minter_corpus
-seqLen: 10
-testLimit: 100000
-timeout: 600 # 10 minutes
+seqLen: 150
+testLimit: 1000000
+timeout: 36000 # 60 minutes
+maxTimeDelay: 483840000 # 5600 days
+maxBlockDelay: 48384000
+contractAddr: "0x00a329c0648769a73afac7f9381e08fb43dbea72"
+deployer: "0x00a329c0648769a73afac7f9381e08fb43dbea70"
+sender: ["0x10000", "0x90000", "0x00a329c0648769a73afac7f9381e08fb43dbea70"]
 
 # blacklist
 filterFunctions:

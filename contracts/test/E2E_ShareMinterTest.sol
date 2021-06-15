@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 
-import "./contracts/HEXMock.sol";
-import "./contracts/ShareMinterFlat.sol";
+import "./HEXMock.sol";
+import "../ShareMinter.sol";
 
-contract E2E_ShareMinterTest is MinterReceiver {
-    HEX private hexContract;
-    ShareMinter private minter;
+contract E2E_ShareMinterTest is MinterReceiver, ShareMinter {
+    HEX private _hexState = new HEX();
+
+    uint256 private stakeCount;
+    uint40[] private openStakes;
 
     struct MintedShares {
         uint40 stakeId;
@@ -23,9 +25,11 @@ contract E2E_ShareMinterTest is MinterReceiver {
     }
     MintedEarnings[] private earnings;
 
-    constructor() {
-        hexContract = new HEX();
-        minter = new ShareMinter(hexContract);
+    constructor() ShareMinter(_hexState) {
+        _hexState.mintHearts(address(this), 1e19);
+        _hexState.mintHearts(address(0x10000), 1e19); //10b HEX
+        _hexState.mintHearts(address(0x90000), 0); //0 HEART
+        _hexState.mintHearts(address(0x00a329C0648769a73afAC7F9381e08fb43DBEA70), 1e19);
     }
 
     function onSharesMinted(
@@ -34,57 +38,62 @@ contract E2E_ShareMinterTest is MinterReceiver {
         uint72 stakedHearts,
         uint72 stakeShares
     ) external override {
-        (, , , uint16 _lockedDay, uint16 _stakedDays, , ) = hexContract.stakeLists(address(minter), stakeId);
-        shares.push(MintedShares(stakeId, supplier, _lockedDay + _stakedDays, stakedHearts, stakeShares));
+        openStakes.push(stakeId);
+        stakeCount++;
     }
 
-    function onEarningsMinted(uint40 stakeId, uint72 heartsEarned) external override {
-        earnings.push(MintedEarnings(stakeId, heartsEarned));
+    function onEarningsMinted(uint40 stakeId, uint72 heartsEarned) external override {}
+
+    function echidna_no_balance() public view returns (bool) {
+        return hexContract.balanceOf(address(0x90000)) == 0;
     }
 
-    function random() private view returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
-    }
+    //mint earnings minter fee invariant
+    function echidna_minter_withdraw() public returns (bool) {
+        uint256 heartsOwed = minterHeartsOwed[msg.sender];
+        if (heartsOwed == 0) return true;
 
-    function mint_shares(
-        uint72 hearts,
-        uint256 randomFee,
-        uint256 stakedDays
-    ) public {
-        hexContract.mintHearts(address(this), uint256(hearts));
-        minter.mintShares(uint16(randomFee), MinterReceiver(this), address(this), hearts, uint16(stakedDays));
-    }
-
-    function mint_earnings() public {
-        uint256 sharesLength = shares.length;
-        require(sharesLength > 0, "shares must exist");
-
-        uint256 randomPosition = random() % sharesLength;
-        MintedShares memory mintedShares = shares[randomPosition];
-
-        minter.mintEarnings(0, mintedShares.stakeId);
-    }
-
-    function minter_withdraw() public {
-        minter.minterWithdraw();
-    }
-
-    function hex_skip_days(uint8 skipDays) public {
-        uint256 currentDay = hexContract._currentDay();
-        hexContract.setCurrentDay(currentDay + skipDays);
+        uint256 balBef = hexContract.balanceOf(msg.sender);
+        address(this).delegatecall(abi.encodeWithSignature("minterWithdraw()"));
+        uint256 balAft = hexContract.balanceOf(msg.sender);
+        return heartsOwed == balAft - balBef;
     }
 
     function echidna_all_stakes_received() public view returns (bool) {
-        uint256 stakeCount = hexContract.stakeCount(address(minter));
-        return stakeCount == shares.length;
+        return stakeCount == hexContract.stakeCount(address(this));
     }
 
-    function echidna_no_early_end_stake() public view returns (bool) {
-        uint40 latestStakeId = hexContract._stakeId();
-        for (uint40 stakeId = 0; stakeId <= latestStakeId; stakeId++) {
-            (, , , uint16 lockedDay, uint16 stakedDays, uint16 unlockedDay, ) =
-                hexContract._stakes(address(minter), stakeId);
-            if (unlockedDay != 0 && unlockedDay < lockedDay + stakedDays) return false;
+    function echidna_mature_stake_mintable() public returns (bool) {
+        uint256 openStakesLength = openStakes.length;
+        if (openStakesLength > 100) openStakesLength = 100;
+        for (uint256 i = openStakesLength; i > 0; i--) {
+            (uint40 stakeId, , , uint16 lockedDay, uint16 stakedDays, uint16 unlockedDay, ) =
+                hexContract.stakeLists(address(this), openStakes[i - 1]);
+
+            if (
+                unlockedDay == 0 &&
+                hexContract.currentDay() > lockedDay &&
+                hexContract.currentDay() - uint256(lockedDay) >= uint256(stakedDays)
+            ) {
+                address(this).delegatecall(abi.encodeWithSignature("mintEarnings(uint256,uint40)", 0, stakeId));
+                (bool ended, , ) = _hexState._stakesMetadata(address(this), stakeId);
+
+                if (ended) delete openStakes[i - 1];
+                if (!ended) return false;
+            }
+        }
+        return true;
+    }
+
+    function echidna_no_early_end_stake() public returns (bool) {
+        uint256 openStakesLength = openStakes.length;
+        if (openStakesLength > 100) openStakesLength = 100;
+        for (uint256 i = openStakesLength; i > 0; i--) {
+            uint40 stakeId = openStakes[i - 1];
+            (bool ended, bool endedEarly, ) = _hexState._stakesMetadata(address(this), stakeId);
+
+            if (ended) delete openStakes[i - 1];
+            if (endedEarly) return false;
         }
         return true;
     }

@@ -34,7 +34,7 @@ getManyAccounts = async (count) => {
 }
 
 deployContracts = async (hexAddress, minterAddress, marketAddress) => {
-    const HEX = await ethers.getContractFactory("HEX");
+    const HEX = await ethers.getContractFactory("contracts/libraries/HEX.sol:HEX");
     const ShareMinter = await ethers.getContractFactory("ShareMinter");
     const ShareMarket = await ethers.getContractFactory("ShareMarket");
 

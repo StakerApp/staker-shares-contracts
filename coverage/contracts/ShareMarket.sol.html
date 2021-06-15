@@ -20,14 +20,14 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">98.73% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>78/79</span>
+        <span class='fraction'>82/82</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">90.63% </span>
+        <span class="strong">91.18% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>29/32</span>
+        <span class='fraction'>31/34</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -37,7 +37,7 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>78/78</span>
+        <span class='fraction'>82/82</span>
       </div>
     </div>
   </div>
@@ -329,7 +329,15 @@
 284
 285
 286
-287</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+287
+288
+289
+290
+291
+292
+293
+294</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -518,6 +526,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">263×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">263×</span>
@@ -544,6 +555,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -570,6 +582,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -616,9 +630,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 &nbsp;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./libraries/IERC20.sol";
 import "./libraries/FullMath.sol";
 import "./MinterReceiver.sol";
 &nbsp;
@@ -655,6 +669,7 @@ contract ShareMarket is MinterReceiver {
     struct ListingOwnership {
         uint72 sharesOwned;
         uint72 heartsOwed;
+        bool isSupplier;
     }
     //keccak(stakeId, address) =&gt; ListingOwnership
     mapping(bytes32 =&gt; ListingOwnership) internal shareOwners;
@@ -709,7 +724,7 @@ contract ShareMarket is MinterReceiver {
         shareEarnings[stakeId].sharesTotal = stakeShares;
 &nbsp;
         //Store how many hearts the supplier needs to be paid back
-        shareOwners[_hash(stakeId, supplier)].heartsOwed = uint72(stakedHearts);
+        shareOwners[_hash(stakeId, supplier)] = ListingOwnership(0, stakedHearts, true);
 &nbsp;
         emit AddListing(stakeId, supplier, uint256(uint72(stakeShares)) | (uint256(uint72(stakedHearts)) &lt;&lt; 72));
     }
@@ -803,7 +818,10 @@ contract ShareMarket is MinterReceiver {
 &nbsp;
         //Reduce hearts owed to remaining hearts balance if it exceeds it
         //This can happen from extra 1 heart cost
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (heartsOwed &gt; _heartsBalance) <span class="cstat-no" title="statement not covered" >heartsOwed = _heartsBalance</span>;
+        if (heartsOwed &gt;= _heartsBalance) {
+            heartsOwed = _heartsBalance;
+            sharesPurchased = _sharesBalance;
+        }
 &nbsp;
         //Reduce both sides of the pool to maintain price
         uint256 sharesBalance = _sharesBalance - sharesPurchased;
@@ -832,6 +850,7 @@ contract ShareMarket is MinterReceiver {
         //Track total withdrawable
         uint256 totalHeartsOwed = 0;
         bytes32 supplier = _hash(stakeId, msg.sender);
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(shareOwners[supplier].isSupplier, "NOT_SUPPLIER");
 &nbsp;
         //Check to see if heartsOwed for sold shares in listing
         uint256 heartsOwed = uint256(shareOwners[supplier].heartsOwed);
@@ -862,6 +881,8 @@ contract ShareMarket is MinterReceiver {
                 shareOwners[supplier].sharesOwned = uint72(supplierShares);
                 //Close buying from share listing
                 delete shareListings[stakeId];
+                //Remove supplier hearts owed
+                shareOwners[supplier].heartsOwed = 0;
                 emit BuyShares(
                     stakeId,
                     msg.sender,
@@ -907,7 +928,7 @@ contract ShareMarket is MinterReceiver {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed May 12 2021 16:23:48 GMT-0400 (Eastern Daylight Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 15 2021 01:10:02 GMT-0400 (Eastern Daylight Time)
 </div>
 </div>
 <script src="../prettify.js"></script>

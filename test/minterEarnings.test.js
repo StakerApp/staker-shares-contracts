@@ -77,7 +77,7 @@ describe('MinterEarnings - Valid Scenarios', () => {
 
     it('should skip past minter grace period', async () => {
         const DAY = 84000;
-        await evm.advanceTimeAndBlock(10 * DAY);
+        await evm.advanceTimeAndBlock(11 * DAY);
         await hex.dailyDataUpdate(0);
     });
 

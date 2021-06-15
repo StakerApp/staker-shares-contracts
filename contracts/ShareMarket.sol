@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./libraries/IERC20.sol";
 import "./libraries/FullMath.sol";
 import "./MinterReceiver.sol";
 
@@ -38,6 +38,7 @@ contract ShareMarket is MinterReceiver {
     struct ListingOwnership {
         uint72 sharesOwned;
         uint72 heartsOwed;
+        bool isSupplier;
     }
     //keccak(stakeId, address) => ListingOwnership
     mapping(bytes32 => ListingOwnership) internal shareOwners;
@@ -92,7 +93,7 @@ contract ShareMarket is MinterReceiver {
         shareEarnings[stakeId].sharesTotal = stakeShares;
 
         //Store how many hearts the supplier needs to be paid back
-        shareOwners[_hash(stakeId, supplier)].heartsOwed = uint72(stakedHearts);
+        shareOwners[_hash(stakeId, supplier)] = ListingOwnership(0, stakedHearts, true);
 
         emit AddListing(stakeId, supplier, uint256(uint72(stakeShares)) | (uint256(uint72(stakedHearts)) << 72));
     }
@@ -186,7 +187,10 @@ contract ShareMarket is MinterReceiver {
 
         //Reduce hearts owed to remaining hearts balance if it exceeds it
         //This can happen from extra 1 heart cost
-        if (heartsOwed > _heartsBalance) heartsOwed = _heartsBalance;
+        if (heartsOwed >= _heartsBalance) {
+            heartsOwed = _heartsBalance;
+            sharesPurchased = _sharesBalance;
+        }
 
         //Reduce both sides of the pool to maintain price
         uint256 sharesBalance = _sharesBalance - sharesPurchased;
@@ -215,6 +219,7 @@ contract ShareMarket is MinterReceiver {
         //Track total withdrawable
         uint256 totalHeartsOwed = 0;
         bytes32 supplier = _hash(stakeId, msg.sender);
+        require(shareOwners[supplier].isSupplier, "NOT_SUPPLIER");
 
         //Check to see if heartsOwed for sold shares in listing
         uint256 heartsOwed = uint256(shareOwners[supplier].heartsOwed);
@@ -245,6 +250,8 @@ contract ShareMarket is MinterReceiver {
                 shareOwners[supplier].sharesOwned = uint72(supplierShares);
                 //Close buying from share listing
                 delete shareListings[stakeId];
+                //Remove supplier hearts owed
+                shareOwners[supplier].heartsOwed = 0;
                 emit BuyShares(
                     stakeId,
                     msg.sender,

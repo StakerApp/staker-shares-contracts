@@ -22,12 +22,12 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>41/41</span>
+        <span class='fraction'>44/44</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">91.67% </span>
+        <span class="strong">92.86% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>11/12</span>
+        <span class='fraction'>13/14</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -37,7 +37,7 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>43/43</span>
+        <span class='fraction'>46/46</span>
       </div>
     </div>
   </div>
@@ -219,7 +219,12 @@
 174
 175
 176
-177</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+177
+178
+179
+180
+181</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -321,6 +326,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">62×</span>
 <span class="cline-any cline-yes">62×</span>
 <span class="cline-any cline-yes">62×</span>
@@ -336,10 +342,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">11×</span>
 <span class="cline-any cline-yes">11×</span>
-<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -357,8 +367,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10×</span>
-<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -373,8 +383,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -396,11 +404,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 &nbsp;
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "./libraries/IHEX.sol";
+import "./libraries/ERC165Checker.sol";
 import "./libraries/FullMath.sol";
-import "./interfaces/IHEX.sol";
 import "./MinterReceiver.sol";
 &nbsp;
 /// @title HEX Share Minter
@@ -417,7 +425,8 @@ contract ShareMinter {
 &nbsp;
     struct Stake {
         uint16 shareRatePremium;
-        uint24 unlockDay;
+        uint16 lockedDay;
+        uint16 stakedDays;
         address minter;
         MinterReceiver receiver;
     }
@@ -469,7 +478,7 @@ contract ShareMinter {
         hexContract.transferFrom(msg.sender, address(this), newStakedHearts);
 &nbsp;
         //Start stake
-        (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint24 unlockDay) =
+        (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint16 lockedDay, uint16 stakedDays) =
             _startStake(newStakedHearts, newStakedDays);
 &nbsp;
         //Calculate minterShares and receiverShares
@@ -478,7 +487,7 @@ contract ShareMinter {
 &nbsp;
         //Mint shares to the receiver and store stake info for later
         receiver.onSharesMinted(stakeId, supplier, stakedHearts, uint72(receiverShares));
-        stakes[stakeId] = Stake(shareRatePremium, unlockDay, msg.sender, receiver);
+        stakes[stakeId] = Stake(shareRatePremium, lockedDay, stakedDays, msg.sender, receiver);
 &nbsp;
         emit MintShares(
             stakeId,
@@ -494,14 +503,15 @@ contract ShareMinter {
             uint40 stakeId,
             uint72 stakedHearts,
             uint72 stakeShares,
-            uint24 unlockDay
+            uint16 lockedDay,
+            uint16 stakedDays
         )
     {
         hexContract.stakeStart(newStakedHearts, newStakedDays);
         uint256 stakeCount = hexContract.stakeCount(address(this));
         (uint40 _stakeId, uint72 _stakedHearts, uint72 _stakeShares, uint16 _lockedDay, uint16 _stakedDays, , ) =
             hexContract.stakeLists(address(this), stakeCount - 1);
-        return (_stakeId, _stakedHearts, _stakeShares, _lockedDay + _stakedDays);
+        return (_stakeId, _stakedHearts, _stakeShares, _lockedDay, _stakedDays);
     }
 &nbsp;
     /// @notice Ends stake, transfers hearts, and calls receiver onEarningsMinted
@@ -511,8 +521,12 @@ contract ShareMinter {
     function mintEarnings(uint256 stakeIndex, uint40 stakeId) external lock {
         //Ensure the stake has matured
         Stake memory stake = stakes[stakeId];
+        require(stake.stakedDays != 0, "STAKE_NOT_FOUND");
         uint256 currentDay = hexContract.currentDay();
-        require(currentDay &gt;= stake.unlockDay, "STAKE_NOT_MATURE");
+        uint256 lockedDay = uint256(stake.lockedDay);
+        uint256 servedDays = currentDay &gt; lockedDay ? currentDay - lockedDay : 0;
+        uint256 stakedDays = uint256(stake.stakedDays);
+        require(servedDays &gt;= stakedDays, "STAKE_NOT_MATURE");
 &nbsp;
         //Calculate minter earnings and receiver earnings
         uint256 heartsEarned = _endStake(stakeIndex, stakeId);
@@ -525,7 +539,7 @@ contract ShareMinter {
         receiver.onEarningsMinted(stakeId, uint72(receiverEarnings));
 &nbsp;
         //Pay minter or record payment for claiming later
-        _payMinterEarnings(currentDay, stake.unlockDay, stake.minter, minterEarnings);
+        _payMinterEarnings(servedDays - stakedDays, stake.minter, minterEarnings);
 &nbsp;
         emit MintEarnings(stakeId, msg.sender, receiver, uint72(heartsEarned));
 &nbsp;
@@ -545,12 +559,10 @@ contract ShareMinter {
     /// the minter earnings. If the minter is the caller,
     /// they will get the earnings sent immediately.
     function _payMinterEarnings(
-        uint256 currentDay,
-        uint256 unlockDay,
+        uint256 lateDays,
         address minter,
         uint256 minterEarnings
     ) internal {
-        uint256 lateDays = currentDay - unlockDay;
         if (msg.sender != minter &amp;&amp; lateDays &lt;= GRACE_PERIOD_DAYS) {
             minterHeartsOwed[minter] += minterEarnings;
         } else {
@@ -577,7 +589,7 @@ contract ShareMinter {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed May 12 2021 16:23:48 GMT-0400 (Eastern Daylight Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 15 2021 01:10:02 GMT-0400 (Eastern Daylight Time)
 </div>
 </div>
 <script src="../prettify.js"></script>
