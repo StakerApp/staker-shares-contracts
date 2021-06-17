@@ -55,11 +55,11 @@ contract HEX is IHEX {
 
         uint256 day = _currentDay();
         uint256 penaltyHearts = 0;
-        // if (day > stake.lockedDay + 14) {
-        //     penaltyHearts = stake.stakedHearts / 2;
-        // } else if (day > stake.lockedDay + 365) {
-        //     penaltyHearts = stake.stakedHearts;
-        // }
+        if (day > stake.lockedDay + 14) {
+            penaltyHearts = stake.stakedHearts / 2;
+        } else if (day > stake.lockedDay + 365) {
+            penaltyHearts = stake.stakedHearts;
+        }
 
         mintHearts(msg.sender, stake.stakedHearts - penaltyHearts);
         stake.unlockedDay = uint16(day);

@@ -1,5 +1,7 @@
 node_modules/
 artifacts/
+coverage/
+docs/
 cache/
 bin/
 coverage.json

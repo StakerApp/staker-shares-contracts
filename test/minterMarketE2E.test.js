@@ -14,7 +14,7 @@ describe('MinterMarketE2E - Many accounts... this can take a while', function ()
 
     let stakeId = 1001;
     const heartsStaked = BigNumber.from("1000000000000000");
-    const stakeLength = 5555;
+    const stakeLength = 10;
 
     before(async () => {
         [hex, minter, market] = await init.deployContracts();
@@ -28,7 +28,7 @@ describe('MinterMarketE2E - Many accounts... this can take a while', function ()
         await env.seedEnvironment(allUsers);
     });
 
-    var stakeIds = [];
+    var stakesSupplied = [];
     it('should allow many minters to mint', async () => {
         //mint random amount of hex
         for (var i = 0; i < suppliers.length; i++) {
@@ -37,7 +37,11 @@ describe('MinterMarketE2E - Many accounts... this can take a while', function ()
             await minter
                 .connect(supplier.signer)
                 .mintShares(fee, market.address, supplier.address, heartsStaked, stakeLength);
-            stakeIds.push(stakeId);
+            stakesSupplied.push({
+                stakeId,
+                address: supplier.address,
+                signer: supplier.signer
+            });
             stakeId++;
         }
     });
@@ -46,54 +50,77 @@ describe('MinterMarketE2E - Many accounts... this can take a while', function ()
     it('should allow many buyers to buy', async () => {
         for (var i = 0; i < buyers.length; i++) {
             let buyer = buyers[Math.floor(Math.random() * buyers.length)];
-            let stakeId = stakeIds[Math.floor(Math.random() * stakeIds.length)];
+            let stakeId = stakesSupplied[Math.floor(Math.random() * stakesSupplied.length)].stakeId;
             let sharesOnMarket = (await market.listingBalances(stakeId)).shares;
             let sharesToPurchase = sharesOnMarket.div(Math.floor(Math.random() * 10 + 2));
 
+            const balBefore = await env.getBalance(buyer.address);
             if (Math.random() < 0.5) {
                 //buy for self
                 await market
                     .connect(buyer.signer)
                     .buyShares(stakeId, buyer.address, sharesToPurchase);
-                openClaimAddresses.push(buyer.address);
+                openClaimAddresses.push({ stakeId, address: buyer.address, signer: buyer.signer });
             } else {
                 //buy for other
                 let claimer = claimers[Math.floor(Math.random() * claimers.length)];
                 await market
                     .connect(buyer.signer)
                     .buyShares(stakeId, claimer.address, sharesToPurchase);
-                openClaimAddresses.push(claimer.address);
+                openClaimAddresses.push({ stakeId, address: claimer.address, signer: claimer.signer });
             }
+            const balAfter = await env.getBalance(buyer.address);
+
+            expect(balAfter).to.be.below(balBefore);
         }
     });
 
-    // it('should allow many claimers to claim', async () => {
-    //     for (var i = 0; i < openClaimAddresses.length; i++) {
-    //         //claim for self
-    //     }
-    // });
+    it('should skip to stake maturity', async () => {
+        const DAY = 84000;
+        await evm.advanceTimeAndBlock(12 * DAY);
+        await hex.dailyDataUpdate(0);
+    });
 
-    // it('should allow many suppliers to withdraw', async () => {
-    //     //withdraw for self
-    //     //attempt to withdraw with nothing
-    // });
+    it('should mint stake earnings', async () => {
+        //end in reverse order since stake index shifts otherwise
+        for (var i = stakesSupplied.length - 1; i >= 0; i--) {
+            let { stakeId, address, signer } = stakesSupplied[i];
+            await minter
+                .connect(signer)
+                .mintEarnings(i, stakeId);
+        }
+    });
 
-    // const heartsToStake = (user) => {
-    //     const max = await env.getBalance(user.address);
-    //     const min = Math.ceil(max.div(10));
-    //     return Math.floor(Math.random().multiply((max.sub(min)).add(min)));
-    // }
+    const completedClaim = {};
+    it('should allow many claimers to claim', async () => {
+        for (var i = 0; i < openClaimAddresses.length; i++) {
+            let { stakeId, address, signer } = openClaimAddresses[i];
 
-    // const mintSharesToMarket = (user) => {
-    //     const userBalanceBefore = await env.getBalance(user.address);
+            if (completedClaim[stakeId + address]) {
+                continue;
+            }
+            const balBefore = await env.getBalance(address);
+            await market
+                .connect(signer)
+                .claimEarnings(stakeId);
+            completedClaim[stakeId + address] = true;
+            const balAfter = await env.getBalance(address);
 
-    //     // Act
-    //     await minter.mintShares(fee, market.address, user.address, heartsStaked, 1);
-    //     const sharesOnMarket = (await market.listingBalances(stakeId)).shares;
+            expect(balAfter).to.be.above(balBefore);
+        }
+    });
 
-    //     // Assert
-    //     const userBalanceAfter = await env.getBalance(user.address);
-    //     expect(userBalanceAfter).to.equal(userBalanceBefore.sub(heartsStaked));
-    //     expect(marketShares).to.equal(sharesOnMarket);
-    // }
+    it('should allow many suppliers to withdraw', async () => {
+        for (var i = 0; i < suppliers.length; i++) {
+            let { stakeId, address, signer } = stakesSupplied[i];
+
+            const balBefore = await env.getBalance(address);
+            await market
+                .connect(signer)
+                .supplierWithdraw(stakeId);
+            const balAfter = await env.getBalance(address);
+
+            expect(balAfter).to.be.above(balBefore);
+        }
+    });
 });
