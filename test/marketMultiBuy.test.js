@@ -18,7 +18,7 @@ describe('MarketMultiBuy - Valid Buyer Scenario', () => {
         [supplier, buyer, claimer] = await init.getAccounts();
         
         env.init(hex, minter, market);
-        await env.seedEnvironment(supplier, buyer, claimer);
+        await env.seedEnvironment([supplier, buyer, claimer]);
 
         await minter.mintShares(fee, market.address, supplier.address, heartsStaked, 1);
         await minter.mintShares(fee, market.address, supplier.address, heartsStaked, 1);

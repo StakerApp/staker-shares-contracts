@@ -22,7 +22,7 @@ describe('MarketUnsoldShares - Valid No Buyer Scenario', () => {
         [supplier, buyer, claimer] = await init.getAccounts();
 
         env.init(hex, minter, market);
-        await env.seedEnvironment(supplier, buyer, claimer);
+        await env.seedEnvironment([supplier, buyer, claimer]);
     });
 
     it('should mint shares to market', async () => {

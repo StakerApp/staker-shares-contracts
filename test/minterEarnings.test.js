@@ -20,7 +20,7 @@ describe('MinterEarnings - Valid Scenarios', () => {
         [minter1, minter2, minter3] = await init.getAccounts();
 
         env.init(hex, minter, market);
-        await env.seedEnvironment(minter1, minter2, minter3);
+        await env.seedEnvironment([minter1, minter2, minter3]);
 
         //Minter 1
         await minter.mintShares(fee, market.address, minter1.address, heartsStaked, 1);
@@ -77,7 +77,7 @@ describe('MinterEarnings - Valid Scenarios', () => {
 
     it('should skip past minter grace period', async () => {
         const DAY = 84000;
-        await evm.advanceTimeAndBlock(10 * DAY);
+        await evm.advanceTimeAndBlock(11 * DAY);
         await hex.dailyDataUpdate(0);
     });
 

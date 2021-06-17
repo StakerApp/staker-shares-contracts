@@ -1,14 +1,14 @@
 # ShareMinter ShareMarket Contracts
 
 ## Ropsten
-- HEX: https://ropsten.etherscan.io/address/0xaaad01f209775a8c2413f1f0fe985e2f284a8089
-- ShareMinter: https://ropsten.etherscan.io/address/0x37d241C8F1DF0ee1f201aED648E4Fbafa05868b1
-- ShareMarket: https://ropsten.etherscan.io/address/0x1592Ed5c72B43DAA5d757Ee9e1970BB16f7E2179
+- HEX: https://ropsten.etherscan.io/address/0x483aaa4de67538c53d892486f50747e017b93b7e
+- ShareMinter: https://ropsten.etherscan.io/address/0x6aAd1DA3b867f6BCBc068b9FEb350B9c744A2e20
+- ShareMarket: https://ropsten.etherscan.io/address/0xCfA440Da535AC44D8E2203d397484D6797c52C6d
 
 ## Mainnet
 - HEX: https://etherscan.io/address/0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39
-- ShareMinter: 
-- ShareMarket: 
+- ShareMinter: https://etherscan.io/address/0xe89caA7B7E4CD6CDD6a0bd33b3b4Eec7068a8f85
+- ShareMarket: https://etherscan.io/address/0x9661254261baA3967B7782aB7F5540d5565A88b4
 
 <br>
 
@@ -34,9 +34,10 @@ Example
 1. Call `mintShares` with 1,000,000 HEX staked and share rate premium of 1%
 2. Stake creates 10T shares
 3. Receiver gets 9.9T shares (1% premium = 0.1T shares)
-4. Send 1,000,000 HEX staked and 9.9T shares to receiver
-5. Call `mintEarnings` and minter gets 1% of HEX rewarded
-6. Receiver gets 99% of the HEX rewarded
+4. Send data specifying 1,000,000 HEX staked and 9.9T shares created to receiver
+5. Wait for stake to mature
+6. Call `mintEarnings` and minter gets 1% of HEX rewarded
+7. Receiver gets 99% of the HEX rewarded
 
 Original share price
 10T Shares / 1M HEX = 10M shares per HEX
@@ -79,7 +80,7 @@ _________________
 
 ### Cons
 1. No emergency end stake
-2. If the share rate premium is worth less than the cost to end stake then there's a risk it will fall on to a share owner to end it
+2. If the share rate premium is worth less than the cost to end stake then there's a risk it will fall on a share owner to end it
 
 ### Gas Usage
 ![ShareMarketGasUsage](./diagrams/ShareMarketGasUsage.png "ShareMarketGasUsage")
@@ -120,6 +121,18 @@ ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY_HERE
 
 ```
 npx hardhat test
+```
+
+### Running Echidna (Fuzzer)
+Note: PITA to set up if you don't know what you're doing. Will need to install the Echidna Docker image available and update the solc compiler to the required version.
+
+**E2E_ShareMinterTest**
+```
+docker run -it --rm -v "%cd%":/src echidna-0.8.4 echidna-test /src/contracts/test/E2E_ShareMinterTest.sol --contract E2E_ShareMinterTest --config /src/contracts/test/E2E_ShareMinterTest.config.yaml
+```
+**E2E_ShareMarketTest**
+```
+docker run -it --rm -v "%cd%":/src echidna-0.8.4 echidna-test /src/contracts/test/E2E_ShareMarketTest.sol --contract E2E_ShareMarketTest --config /src/contracts/test/E2E_ShareMarketTest.config.yaml
 ```
 
 ### Deploy to Ropsten

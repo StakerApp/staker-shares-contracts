@@ -23,7 +23,7 @@ describe('MarketSingleBuy - Valid Buyer Scenario', () => {
         [supplier, buyer, claimer] = await init.getAccounts();
 
         env.init(hex, minter, market);
-        await env.seedEnvironment(supplier, buyer, claimer);
+        await env.seedEnvironment([supplier, buyer, claimer]);
     });
 
     it('should mint shares to market', async () => {
@@ -57,6 +57,22 @@ describe('MarketSingleBuy - Valid Buyer Scenario', () => {
         expect(sharesOwned).to.equal(sharesBought);
     });
 
+    it('should allow supplier to withdraw hearts from market before minting', async () => {
+        // Arrange
+        const minterEarnings = await market.supplierHeartsPayable(stakeId, supplier.address);
+        const supplierBalanceBefore = await env.getBalance(supplier.address);
+
+        // Act
+        await market.supplierWithdraw(stakeId);
+        await evm.catchRevert(market.supplierWithdraw(stakeId));
+
+        // Assert
+        const supplierBalanceAfter = await env.getBalance(supplier.address);
+        expect(await market.supplierHeartsPayable(stakeId, supplier.address)).to.equal(0);
+        expect(supplierBalanceAfter).to.equal(supplierBalanceBefore.add(heartsStaked.div(2)));
+        expect(minterEarnings).to.equal(heartsStaked.div(2));
+    });
+
     it('should allow buying shares from market for other', async () => {
         // Arrange
         const buyerBalanceBefore = await env.getBalance(buyer.address);
@@ -72,22 +88,6 @@ describe('MarketSingleBuy - Valid Buyer Scenario', () => {
         expect(buyerBalanceAfter).to.equal(buyerBalanceBefore.sub(heartsStaked.div(2)));
         expect(sharesOnMarket).to.equal(0);
         expect(sharesOwned).to.equal(sharesBought);
-    });
-
-    it('should allow supplier to withdraw hearts from market', async () => {
-        // Arrange
-        const minterEarnings = await market.supplierHeartsPayable(stakeId, supplier.address);
-        const supplierBalanceBefore = await env.getBalance(supplier.address);
-
-        // Act
-        await market.supplierWithdraw(stakeId);
-        await evm.catchRevert(market.supplierWithdraw(stakeId));
-
-        // Assert
-        const supplierBalanceAfter = await env.getBalance(supplier.address);
-        expect(await market.supplierHeartsPayable(stakeId, supplier.address)).to.equal(0);
-        expect(supplierBalanceAfter).to.equal(supplierBalanceBefore.add(heartsStaked));
-        expect(minterEarnings).to.equal(heartsStaked);
     });
 
     it('should skip to stake maturity', async () => {
@@ -139,6 +139,22 @@ describe('MarketSingleBuy - Valid Buyer Scenario', () => {
         const claimerBalanceAfter = await env.getBalance(claimer.address);
         expect(claimerBalanceAfter).to.equal(claimerBalanceBefore.add(splitHeartsRewarded));
         expect(sharesOwned).to.equal(0);
+    });
+
+    it('should allow supplier to withdraw hearts from market after minting', async () => {
+        // Arrange
+        const minterEarnings = await market.supplierHeartsPayable(stakeId, supplier.address);
+        const supplierBalanceBefore = await env.getBalance(supplier.address);
+
+        // Act
+        await market.supplierWithdraw(stakeId);
+        await evm.catchRevert(market.supplierWithdraw(stakeId));
+
+        // Assert
+        const supplierBalanceAfter = await env.getBalance(supplier.address);
+        expect(await market.supplierHeartsPayable(stakeId, supplier.address)).to.equal(0);
+        expect(supplierBalanceAfter).to.equal(supplierBalanceBefore.add(heartsStaked.div(2)));
+        expect(minterEarnings).to.equal(heartsStaked.div(2));
     });
 
     it('should return supplier hearts staked and 1% stake payout', async () => {

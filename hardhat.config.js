@@ -11,6 +11,12 @@ require('dotenv').config();
 
 module.exports = {
   networks: {
+    hardhat: {
+      accounts: {
+        count: 1500
+      }
+    },
+
     ropsten: {
       url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts: [process.env.PK],

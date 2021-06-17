@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "./libraries/IHEX.sol";
+import "./libraries/ERC165Checker.sol";
 import "./libraries/FullMath.sol";
-import "./interfaces/IHEX.sol";
 import "./MinterReceiver.sol";
 
 /// @title HEX Share Minter
@@ -20,7 +20,8 @@ contract ShareMinter {
 
     struct Stake {
         uint16 shareRatePremium;
-        uint24 unlockDay;
+        uint16 lockedDay;
+        uint16 stakedDays;
         address minter;
         MinterReceiver receiver;
     }
@@ -72,7 +73,7 @@ contract ShareMinter {
         hexContract.transferFrom(msg.sender, address(this), newStakedHearts);
 
         //Start stake
-        (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint24 unlockDay) =
+        (uint40 stakeId, uint72 stakedHearts, uint72 stakeShares, uint16 lockedDay, uint16 stakedDays) =
             _startStake(newStakedHearts, newStakedDays);
 
         //Calculate minterShares and receiverShares
@@ -81,7 +82,7 @@ contract ShareMinter {
 
         //Mint shares to the receiver and store stake info for later
         receiver.onSharesMinted(stakeId, supplier, stakedHearts, uint72(receiverShares));
-        stakes[stakeId] = Stake(shareRatePremium, unlockDay, msg.sender, receiver);
+        stakes[stakeId] = Stake(shareRatePremium, lockedDay, stakedDays, msg.sender, receiver);
 
         emit MintShares(
             stakeId,
@@ -97,14 +98,15 @@ contract ShareMinter {
             uint40 stakeId,
             uint72 stakedHearts,
             uint72 stakeShares,
-            uint24 unlockDay
+            uint16 lockedDay,
+            uint16 stakedDays
         )
     {
         hexContract.stakeStart(newStakedHearts, newStakedDays);
         uint256 stakeCount = hexContract.stakeCount(address(this));
         (uint40 _stakeId, uint72 _stakedHearts, uint72 _stakeShares, uint16 _lockedDay, uint16 _stakedDays, , ) =
             hexContract.stakeLists(address(this), stakeCount - 1);
-        return (_stakeId, _stakedHearts, _stakeShares, _lockedDay + _stakedDays);
+        return (_stakeId, _stakedHearts, _stakeShares, _lockedDay, _stakedDays);
     }
 
     /// @notice Ends stake, transfers hearts, and calls receiver onEarningsMinted
@@ -114,8 +116,12 @@ contract ShareMinter {
     function mintEarnings(uint256 stakeIndex, uint40 stakeId) external lock {
         //Ensure the stake has matured
         Stake memory stake = stakes[stakeId];
+        require(stake.stakedDays != 0, "STAKE_NOT_FOUND");
         uint256 currentDay = hexContract.currentDay();
-        require(currentDay >= stake.unlockDay, "STAKE_NOT_MATURE");
+        uint256 lockedDay = uint256(stake.lockedDay);
+        uint256 servedDays = currentDay > lockedDay ? currentDay - lockedDay : 0;
+        uint256 stakedDays = uint256(stake.stakedDays);
+        require(servedDays >= stakedDays, "STAKE_NOT_MATURE");
 
         //Calculate minter earnings and receiver earnings
         uint256 heartsEarned = _endStake(stakeIndex, stakeId);
@@ -128,7 +134,7 @@ contract ShareMinter {
         receiver.onEarningsMinted(stakeId, uint72(receiverEarnings));
 
         //Pay minter or record payment for claiming later
-        _payMinterEarnings(currentDay, stake.unlockDay, stake.minter, minterEarnings);
+        _payMinterEarnings(servedDays - stakedDays, stake.minter, minterEarnings);
 
         emit MintEarnings(stakeId, msg.sender, receiver, uint72(heartsEarned));
 
@@ -148,12 +154,10 @@ contract ShareMinter {
     /// the minter earnings. If the minter is the caller,
     /// they will get the earnings sent immediately.
     function _payMinterEarnings(
-        uint256 currentDay,
-        uint256 unlockDay,
+        uint256 lateDays,
         address minter,
         uint256 minterEarnings
     ) internal {
-        uint256 lateDays = currentDay - unlockDay;
         if (msg.sender != minter && lateDays <= GRACE_PERIOD_DAYS) {
             minterHeartsOwed[minter] += minterEarnings;
         } else {

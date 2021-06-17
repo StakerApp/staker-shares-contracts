@@ -1,2 +1,2 @@
-contracts/interfaces/*
+contracts/test/*
 contracts/libraries/*

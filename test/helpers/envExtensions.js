@@ -23,21 +23,15 @@ logStakes = async (address) => {
     }
 }
 
-seedEnvironment = async (account1, account2, account3) => {
-    await setBalance(account1.address, STAKED_HEX);
-    await hex.connect(account1.signer).stakeStart(STAKED_HEX, 3650);
+seedEnvironment = async (accounts) => {
+    await setBalance(accounts[0].address, STAKED_HEX);
+    await hex.connect(accounts[0].signer).stakeStart(STAKED_HEX, 3650);
 
-    await setBalance(account1.address, INITIAL_BALANCE);
-    await setBalance(account2.address, INITIAL_BALANCE);
-    await setBalance(account3.address, INITIAL_BALANCE);
-
-    await hex.connect(account1.signer).approve(minter.address, INITIAL_BALANCE);
-    await hex.connect(account2.signer).approve(minter.address, INITIAL_BALANCE);
-    await hex.connect(account3.signer).approve(minter.address, INITIAL_BALANCE);
-
-    await hex.connect(account1.signer).approve(market.address, INITIAL_BALANCE);
-    await hex.connect(account2.signer).approve(market.address, INITIAL_BALANCE);
-    await hex.connect(account3.signer).approve(market.address, INITIAL_BALANCE);
+    for (const account of accounts){
+        await setBalance(account.address, INITIAL_BALANCE);
+        await hex.connect(account.signer).approve(minter.address, INITIAL_BALANCE);
+        await hex.connect(account.signer).approve(market.address, INITIAL_BALANCE);
+    }
 }
 
 module.exports = {

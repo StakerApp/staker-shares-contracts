@@ -1,0 +1,17 @@
+checkAsserts: true
+coverage: true
+codeSize: 0x60000
+corpusDir: echidna_e2e_share_market_corpus
+seqLen: 150
+testLimit: 250000
+timeout: 36000 # 60 minutes
+contractAddr: "0x00a329c0648769a73afac7f9381e08fb43dbea72"
+deployer: "0x00a329C0648769a73afAC7F9381e08fb43DBEA70"
+sender: ["0x10000", "0x20000", "0x00a329C0648769a73afAC7F9381e08fb43DBEA70"]
+
+# blacklist
+filterFunctions:
+  [
+    'ShareMarket.onSharesMinted(uint40,address,uint72,uint72)',
+    'ShareMarket.onEarningsMinted(uint40,uint72)'
+  ]
